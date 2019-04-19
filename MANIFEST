@@ -1,0 +1,6 @@
+name: SPS_RADIUS
+description: RADIUS (RSA) Multi-Factor Authentication plugin
+version: 2.0.5
+type: aa
+api: 1.1
+entry_point: main.py

@@ -1,0 +1,8 @@
+[packages]
+pyrad = "*"
+
+[dev-packages]
+pyrad = "*"
+
+[requires]
+python_version = "3.6"
