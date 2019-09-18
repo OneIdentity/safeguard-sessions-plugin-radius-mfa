@@ -1,3 +1,8 @@
+2.0.6 2019-09-18
+
+No new feature. Make sure to send RADIUS packet attributes in ascending order of type number. This might fix
+interoperability with some server implementations.
+
 2.0.5 2019-04-19
 
 Initial release on GitHub.

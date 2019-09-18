@@ -69,16 +69,18 @@ class RadiusClient:
             raise TimeoutError from err
 
     def __createAuthenticationPacket(self, username, password, state):
-        req = _SCBAuthPacket(User_Name=username, secret=self.__client.secret, dict=self.__client.dict)
+        req = _SCBAuthPacket(secret=self.__client.secret, dict=self.__client.dict)
 
-        req["Service-Type"] = "Login-User"
+        req.AddAttribute(key="User-Name", value=username)  # attribute type=1
+
+        if self.__auth_type == 'pap':  # attribute type=2
+            req.AddAttribute(key="User-Password", value=req.PwCrypt(password))
+        elif self.__auth_type == 'chap':
+            req.AddAttribute(key="CHAP-Password", value=req.ChapDigest(password))
+
+        req.AddAttribute(key="Service-Type", value="Login-User")  # attribute type=6
 
         if state is not None:
-            req["State"] = state.encode('latin-1')
-
-        if self.__auth_type == 'pap':
-            req["User-Password"] = req.PwCrypt(password)
-        elif self.__auth_type == 'chap':
-            req["CHAP-Password"] = req.ChapDigest(password)
+            req.AddAttribute(key="State", value=state.encode('latin-1'))  # attribute type=24
 
         return req
