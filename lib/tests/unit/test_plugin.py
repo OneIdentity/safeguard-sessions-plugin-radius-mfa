@@ -25,7 +25,6 @@ import pytest
 from pyrad.dictionary import Dictionary
 from pyrad.packet import AccessAccept, AccessChallenge, AccessReject, AuthPacket
 from tempfile import TemporaryDirectory
-from textwrap import dedent
 from ...plugin import Plugin
 
 
@@ -154,8 +153,18 @@ def test_authenticate_vs_username(tc):
 
 
 def enrich_params_with_mandatory_keys(params):
-    connection_parameters = {'session_id': '', 'protocol': '', 'connection_name': '', 'client_ip': '', 'client_port': '', 'gateway_user': '',
-     'target_username': '', 'key_value_pairs': {}, 'cookie': {}, 'session_cookie': {}}
+    connection_parameters = {
+        'session_id': '',
+        'protocol': '',
+        'connection_name': '',
+        'client_ip': '',
+        'client_port': '',
+        'gateway_user': '',
+        'target_username': '',
+        'key_value_pairs': {},
+        'cookie': {},
+        'session_cookie': {}
+    }
     connection_parameters.update(params)
     return connection_parameters
 
@@ -228,14 +237,16 @@ def test_authenticate_with_only_target_user():
 
 def test_authenticate_with_only_radius_user():
     plugin = Plugin("")
-    result = plugin.authenticate(**enrich_params_with_mandatory_keys(
-        dict(cookie={}, client_ip='1.2.3.4',
-             key_value_pairs={
-                 'radius_password': 'the_password',
-                 'radius_username': 'the_username',
-             }
+    result = plugin.authenticate(
+        **enrich_params_with_mandatory_keys(
+            dict(cookie={}, client_ip='1.2.3.4',
+                 key_value_pairs={
+                     'radius_password': 'the_password',
+                     'radius_username': 'the_username',
+                }
+            )
         )
-    ))
+    )
     assert result['verdict'] == 'ACCEPT'
     assert result['gateway_user'] == 'the_username'
     assert result['gateway_groups'] == ()
@@ -253,7 +264,7 @@ def test_authenticate_with_bad_radius_password():
     plugin = Plugin("")
     result = plugin.authenticate(**enrich_params_with_mandatory_keys(
                                  dict(cookie={}, client_ip='1.2.3.4', gateway_user='the_username',
-                                       key_value_pairs={'rp': 'not_the_password'})))
+                                      key_value_pairs={'rp': 'not_the_password'})))
     assert result['verdict'] == 'DENY'
 
 
