@@ -35,9 +35,9 @@ class Plugin(AAPlugin):
 
     def _extract_username(self):
         return (
-                self.connection.key_value_pairs.get("radius_username") or
-                self.connection.key_value_pairs.get("ru") or
-                super()._extract_username()
+            self.connection.key_value_pairs.get("radius_username")
+            or self.connection.key_value_pairs.get("ru")
+            or super()._extract_username()
         )
 
     def do_authenticate(self):
@@ -47,14 +47,16 @@ class Plugin(AAPlugin):
         try:
             radcli = RadiusClient.from_config(self.plugin_configuration)
         except Exception as ex:
-            self.logger.error("Error creating RADIUS client instance.\n"
-                              "An exception of type %s occured. Arguments:\n"
-                              "%s", type(ex).__name__, ex.args)
+            self.logger.error(
+                "Error creating RADIUS client instance.\n" "An exception of type %s occured. Arguments:\n" "%s",
+                type(ex).__name__,
+                ex.args,
+            )
             return AAResponse.deny()
 
         try:
-            prev_state = self.cookie.get('state')
-            prev_state = None if prev_state is None else b64decode(prev_state.encode('latin-1')).decode('latin-1')
+            prev_state = self.cookie.get("state")
+            prev_state = None if prev_state is None else b64decode(prev_state.encode("latin-1")).decode("latin-1")
             radrep = radcli.authenticate(username=radius_username, password=self.mfa_password, state=prev_state)
         except TimeoutError:
             self.logger.error("Network timeout while talking to RADIUS server.")
@@ -76,19 +78,17 @@ class Plugin(AAPlugin):
             return AAResponse.deny()
         elif radrep.code == AccessChallenge:
             self.logger.info("RADIUS challenge received")
-            challenge = sub('\x00', '', ''.join(radrep['Reply-Message'][0]))
-            echo_off = 'Prompt' in radrep and radrep['Prompt'][0] == 'No-Echo'
-            state = b64encode(radrep['State'][0]).decode('latin-1')
-            return (AAResponse
-                    .need_info(challenge, 'radius_password', echo_off)
-                    .with_cookie(dict(state=state)))
+            challenge = sub("\x00", "", "".join(radrep["Reply-Message"][0]))
+            echo_off = "Prompt" in radrep and radrep["Prompt"][0] == "No-Echo"
+            state = b64encode(radrep["State"][0]).decode("latin-1")
+            return AAResponse.need_info(challenge, "radius_password", echo_off).with_cookie(dict(state=state))
         else:
             self.logger.error("Unhandled RADIUS reply code: %s", radrep.code)
             return AAResponse.deny()
 
     def _extract_mfa_password(self):
         return (
-                self.connection.key_value_pairs.get("radius_password") or
-                self.connection.key_value_pairs.get("rp") or
-                super()._extract_mfa_password()
+            self.connection.key_value_pairs.get("radius_password")
+            or self.connection.key_value_pairs.get("rp")
+            or super()._extract_mfa_password()
         )
