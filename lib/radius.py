@@ -32,10 +32,10 @@ class _SCBAuthPacket(AuthPacket):
         if self.authenticator is None:
             self.authenticator = self.CreateAuthenticator()
 
-        id_str = chr(self.id).encode('latin-1')
+        id_str = chr(self.id).encode("latin-1")
         md5 = md5_constructor()
         md5.update(id_str)
-        md5.update(password.encode('latin-1'))
+        md5.update(password.encode("latin-1"))
         md5.update(self.authenticator)
         digest = md5.digest()
 
@@ -48,16 +48,17 @@ class RadiusClient:
         self.__auth_type = auth_type
 
     @classmethod
-    def from_config(cls, plugin_config, section='radius'):
-        secret = plugin_config.get(section, 'secret')
+    def from_config(cls, plugin_config, section="radius"):
+        secret = plugin_config.get(section, "secret")
         client = Client(
-            server=plugin_config.get(section, 'server', required=True),
-            authport=plugin_config.getint(section, 'port', 1812),
-            secret=secret.encode('ascii') if secret else None,
-            dict=Dictionary(plugin_config.get(section, 'dictionary_path', "/usr/share/zorp/dictionary")))
-        client.retries = plugin_config.getint(section, 'conn_retries', 3)
-        client.timeout = plugin_config.getint(section, 'conn_timeout', 5)
-        auth_type = plugin_config.getienum(section, 'auth_type', ('pap', 'chap'), default='pap')
+            server=plugin_config.get(section, "server", required=True),
+            authport=plugin_config.getint(section, "port", 1812),
+            secret=secret.encode("ascii") if secret else None,
+            dict=Dictionary(plugin_config.get(section, "dictionary_path", "/usr/share/zorp/dictionary")),
+        )
+        client.retries = plugin_config.getint(section, "conn_retries", 3)
+        client.timeout = plugin_config.getint(section, "conn_timeout", 5)
+        auth_type = plugin_config.getienum(section, "auth_type", ("pap", "chap"), default="pap")
 
         return cls(client, auth_type)
 
@@ -74,11 +75,11 @@ class RadiusClient:
         req["Service-Type"] = "Login-User"
 
         if state is not None:
-            req["State"] = state.encode('latin-1')
+            req["State"] = state.encode("latin-1")
 
-        if self.__auth_type == 'pap':
+        if self.__auth_type == "pap":
             req["User-Password"] = req.PwCrypt(password)
-        elif self.__auth_type == 'chap':
+        elif self.__auth_type == "chap":
             req["CHAP-Password"] = req.ChapDigest(password)
 
         return req
