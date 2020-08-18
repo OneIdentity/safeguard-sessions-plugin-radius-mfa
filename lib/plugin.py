@@ -23,7 +23,8 @@ from base64 import b64encode, b64decode
 from re import sub
 from socket import error as socket_error
 
-from safeguard.sessions.plugin import AAPlugin, AAResponse
+from safeguard.sessions.plugin import AAPlugin
+from safeguard.sessions.plugin.plugin_response import DenyReasons, AAResponse
 from pyrad.packet import AccessReject, AccessAccept, AccessChallenge
 
 from .radius import RadiusClient
@@ -60,22 +61,23 @@ class Plugin(AAPlugin):
             radrep = radcli.authenticate(username=radius_username, password=self.mfa_password, state=prev_state)
         except TimeoutError:
             self.logger.error("Network timeout while talking to RADIUS server.")
-            return AAResponse.deny()
+            return AAResponse.deny(deny_reason=DenyReasons().backend_service_error)
         except socket_error as ex:
             self.logger.error("Network error while talking to RADIUS server: %s", ex)
-            return AAResponse.deny()
+            return AAResponse.deny(deny_reason=DenyReasons().communication_error)
         except Exception as ex:
-            self.logger.error("An exception of type %s occured. Arguments:\n%s", type(ex).__name__, ex.args)
+            self.logger.error(
+                "An exception of type %s occured. Arguments:\n%s", type(ex).__name__, ex.args,
+            )
             self.logger.debug("Exception details follow.", exc_info=ex)
             return AAResponse.deny()
 
         if radrep.code == AccessAccept:
             self.logger.info("RADIUS authentication was successful!")
             return AAResponse.accept()
-
         elif radrep.code == AccessReject:
             self.logger.info("RADIUS authentication was rejected!")
-            return AAResponse.deny()
+            return AAResponse.deny(deny_reason=DenyReasons().authentication_failure)
         elif radrep.code == AccessChallenge:
             self.logger.info("RADIUS challenge received")
             challenge = sub("\x00", "", "".join(radrep["Reply-Message"][0]))

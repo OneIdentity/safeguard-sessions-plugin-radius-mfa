@@ -1,3 +1,7 @@
+3.0.0 2020-08-19
+
+Use human-readable deny reason in plugin response.
+
 2.0.5 2019-04-19
 
 Initial release on GitHub.
