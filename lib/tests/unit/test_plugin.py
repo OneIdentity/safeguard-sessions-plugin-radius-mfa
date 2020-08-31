@@ -74,24 +74,23 @@ def fake_plugin_context(monkeypatch):
             monkeypatch.setitem(os.environ, "EPHEMERAL_PLUGIN_STATE_DIRECTORY", ephemeral_dir)
             yield
 
-
 def provide_get_radius_username_cases():
     yield {
-        "params": {"gateway_user": "gwuser", "key_value_pairs": {}, "target_username": "tguser"},
+        "params": {"gateway_user": "gwuser", "key_value_pairs": {}, "server_username": "srvuser"},
         "expected": "gwuser",
     }
-    yield {"params": {"gateway_user": None, "key_value_pairs": {}, "target_username": "tguser"}, "expected": "tguser"}
-    yield {"params": {"gateway_user": None, "key_value_pairs": {}, "target_username": None}, "expected": None}
+    yield {"params": {"gateway_user": None, "key_value_pairs": {}, "server_username": "srvuser"}, "expected": "srvuser"}
+    yield {"params": {"gateway_user": None, "key_value_pairs": {}, "server_username": None}, "expected": None}
     yield {
         "params": {
             "gateway_user": "gwuser",
             "key_value_pairs": {"radius_username": "radiususer", "ru": "ruuser"},
-            "target_username": "tguser",
+            "server_username": "srvuser",
         },
         "expected": "radiususer",
     }
     yield {
-        "params": {"gateway_user": "gwuser", "key_value_pairs": {"ru": "ruuser"}, "target_username": "tguser"},
+        "params": {"gateway_user": "gwuser", "key_value_pairs": {"ru": "ruuser"}, "server_username": "srvuser"},
         "expected": "ruuser",
     }
 
@@ -101,8 +100,7 @@ def test_get_radius_username(tc):
     def check_tc(params, expected):
         config = ""
         plugin = Plugin(config)
-        plugin.authenticate(**(enrich_params_with_mandatory_keys(params)))
-        print(plugin.cookie)
+        plugin.authenticate(**enrich_params_with_mandatory_keys(params))
         assert plugin.cookie.get("mfa_identity") == expected
 
     check_tc(**tc)
@@ -122,23 +120,24 @@ def test_authenticate_vs_username(tc):
 
     check_tc(**tc)
 
-
 def enrich_params_with_mandatory_keys(params):
     connection_parameters = {
+        "cookie": {},
+        "session_cookie": {},
         "session_id": "",
-        "protocol": "",
+        "protocol": "SSH",
         "connection_name": "",
         "client_ip": "",
         "client_port": "",
-        "gateway_user": "",
-        "target_username": "",
-        "key_value_pairs": {},
-        "cookie": {},
-        "session_cookie": {},
+        "client_hostname": "",
+        "gateway_user": None,
+        "gateway_domain": None,
+        "server_username": None,
+        "server_domain": None,
+        "key_value_pairs": {}
     }
     connection_parameters.update(params)
     return connection_parameters
-
 
 def provide_get_radius_password_cases():
     yield {"params": {"key_value_pairs": {}}, "expected": None}
@@ -193,7 +192,7 @@ def test_authenticate_with_only_target_user():
             dict(
                 cookie={},
                 client_ip="1.2.3.4",
-                target_username="the_username",
+                server_username="the_username",
                 key_value_pairs={"radius_password": "the_password"},
             )
         )
