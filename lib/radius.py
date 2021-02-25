@@ -54,7 +54,7 @@ class RadiusClient:
             server=plugin_config.get(section, "server", required=True),
             authport=plugin_config.getint(section, "port", 1812),
             secret=secret.encode("ascii") if secret else None,
-            dict=Dictionary(plugin_config.get(section, "dictionary_path", "/usr/share/zorp/dictionary")),
+            dict=Dictionary(plugin_config.get(section, "dictionary_path", "/usr/share/zorp/radius/dictionary")),
         )
         client.retries = plugin_config.getint(section, "conn_retries", 3)
         client.timeout = plugin_config.getint(section, "conn_timeout", 5)

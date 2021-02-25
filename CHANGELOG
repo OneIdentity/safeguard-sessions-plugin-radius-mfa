@@ -1,3 +1,11 @@
+3.1.0 2021-01-25
+
+Follow-up /usr/share/zorp directory structure change
+
+This version of the plugin should be used from SPS version 6.9
+If you use an older version of SPS you should
+configure the dictionary_path configuration parameter
+
 3.0.0 2020-08-19
 
 Use human-readable deny reason in plugin response.
