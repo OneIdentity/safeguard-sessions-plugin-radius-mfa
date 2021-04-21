@@ -48,11 +48,7 @@ class Plugin(AAPlugin):
         try:
             radcli = RadiusClient.from_config(self.plugin_configuration)
         except Exception as ex:
-            self.logger.error(
-                "Error creating RADIUS client instance.\n" "An exception of type %s occured. Arguments:\n" "%s",
-                type(ex).__name__,
-                ex.args,
-            )
+            self.logger.error("Error creating RADIUS client instance: %s", ex)
             return AAResponse.deny()
 
         try:
@@ -66,10 +62,7 @@ class Plugin(AAPlugin):
             self.logger.error("Network error while talking to RADIUS server: %s", ex)
             return AAResponse.deny(deny_reason=DenyReasons().communication_error)
         except Exception as ex:
-            self.logger.error(
-                "An exception of type %s occured. Arguments:\n%s", type(ex).__name__, ex.args,
-            )
-            self.logger.debug("Exception details follow.", exc_info=ex)
+            self.logger.error("Unknown exception occurred: %s", ex)
             return AAResponse.deny()
 
         if radrep.code == AccessAccept:
